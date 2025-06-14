@@ -16,7 +16,7 @@ if not st.session_state.logged_in:
     if st.button("Login"):
         if username == "admin" and password == "admin123":
             st.session_state.logged_in = True
-            st.experimental_rerun()
+            st.rerun()
         else:
             st.error("❌ Invalid credentials")
     st.stop()
@@ -26,7 +26,7 @@ st.sidebar.button("🚪 Logout", on_click=lambda: st.session_state.update({"logg
 
 # --- Set page config after login ---
 st.set_page_config(page_title="Customer Category Predictor", layout="centered")
-st.title("🏦 Customer Category Prediction App (CatBoost)")
+st.title("🏦 Customer Category Prediction App")
 
 # Load model and scaler
 model = joblib.load("catboost.pkl")
