@@ -5,7 +5,7 @@ import joblib
 
 # ------------------- Page Config -------------------
 st.set_page_config(page_title="Customer Category Predictor", layout="centered")
-st.title("🏦 Customer Category Prediction App (CatBoost)")
+st.title("🏦 Customer Category Prediction App")
 
 # ------------------- Login Management -------------------
 # Dummy credentials
@@ -27,7 +27,7 @@ if not st.session_state.logged_in:
             st.session_state.logged_in = True
             st.session_state.username = username
             st.success("✅ Login successful!")
-            st.experimental_rerun()
+            st.rerun()
         else:
             st.error("❌ Invalid username or password")
     st.stop()
@@ -37,7 +37,7 @@ st.sidebar.markdown(f"**👤 Logged in as:** `{st.session_state.username}`")
 if st.sidebar.button("🚪 Logout"):
     st.session_state.logged_in = False
     st.session_state.username = ""
-    st.experimental_rerun()
+    st.rerun()
 
 # ------------------- Load Model and Scaler -------------------
 model = joblib.load("catboost.pkl")
