@@ -3,13 +3,15 @@ import pandas as pd
 import numpy as np
 import joblib
 
+# ✅ Set page config first
+st.set_page_config(page_title="Customer Category Predictor", layout="centered")
+
 # --- Login Setup ---
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 # --- Login Page ---
 if not st.session_state.logged_in:
-    st.set_page_config(page_title="Login", layout="centered")
     st.title("🔐 Login")
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
@@ -24,15 +26,14 @@ if not st.session_state.logged_in:
 # --- Logout ---
 st.sidebar.button("🚪 Logout", on_click=lambda: st.session_state.update({"logged_in": False}))
 
-# --- Set page config after login ---
-st.set_page_config(page_title="Customer Category Predictor", layout="centered")
-st.title("🏦 Customer Category Prediction App")
+# --- App Title ---
+st.title("🏦 Customer Category Prediction App (CatBoost)")
 
 # Load model and scaler
 model = joblib.load("catboost.pkl")
 scaler = joblib.load("scaler1.pkl")
 
-# Column names
+# Feature columns
 numeric_features = [
     'Outstanding_Debt',
     'Monthly_Inhand_Salary',
@@ -72,11 +73,11 @@ label_map = {
     4: "New Customer"
 }
 
-# Sidebar
+# --- Sidebar Input Mode ---
 st.sidebar.header("📥 Select Input Method")
 input_mode = st.sidebar.radio("Choose how you want to enter data:", ["Manual Entry", "Upload CSV"])
 
-# --- Manual Input ---
+# --- Manual Entry Mode ---
 if input_mode == "Manual Entry":
     st.subheader("📝 Enter Customer Details")
     with st.form("manual_form"):
@@ -90,13 +91,13 @@ if input_mode == "Manual Entry":
     if submitted:
         df = pd.DataFrame([inputs])
 
-        # Map categories
+        # Map categorical values
         df['Occupation'] = df['Occupation'].map(occupation_map)
         df['Income_Category'] = df['Income_Category'].map(income_map)
         df['Age_Category'] = df['Age_Category'].map(age_map)
         df['Spending_Level'] = df['Spending_Level'].map(spending_map)
 
-        # Scale only numeric features
+        # Scale numeric values only
         df_scaled = df.copy()
         df_scaled[numeric_features] = scaler.transform(df[numeric_features])
 
@@ -105,7 +106,7 @@ if input_mode == "Manual Entry":
         label = label_map.get(int(pred), "Unknown")
         st.success(f"🎯 Predicted Category: *{label}*")
 
-# --- CSV Upload ---
+# --- CSV Upload Mode ---
 else:
     st.subheader("📁 Upload CSV File for Bulk Prediction")
     uploaded_file = st.file_uploader("Upload CSV", type=["csv"])
@@ -114,20 +115,19 @@ else:
         try:
             df = pd.read_csv(uploaded_file)
 
-            # Check column presence
+            # Check if all required columns exist
             missing = [col for col in all_features if col not in df.columns]
             if missing:
                 st.error(f"❌ Missing columns: {', '.join(missing)}")
             else:
-                # Map categorical columns
+                # Map categorical values
                 df['Occupation'] = df['Occupation'].map(occupation_map)
                 df['Income_Category'] = df['Income_Category'].map(income_map)
                 df['Age_Category'] = df['Age_Category'].map(age_map)
                 df['Spending_Level'] = df['Spending_Level'].map(spending_map)
 
+                # Fill NA and scale numeric columns
                 df = df.fillna(0)
-
-                # Scale only numeric columns
                 df_scaled = df.copy()
                 df_scaled[numeric_features] = scaler.transform(df[numeric_features])
 
@@ -140,5 +140,6 @@ else:
 
                 csv = df.to_csv(index=False).encode()
                 st.download_button("📥 Download Predictions", csv, "predictions.csv", "text/csv")
+
         except Exception as e:
             st.error(f"⚠ Error: {e}")
